@@ -1,3 +1,4 @@
 .env
 gi.py
 __pycache__/
+openapi.json

@@ -39,21 +39,21 @@ class InvoiceType(str, Enum):
     PRO_FORMA_INVOICE = "PRO_FORMA_INVOICE"
 
 class ExportReason(str, Enum):
-    PERMANENT = "PERMANENT"
-    TEMPORARY = "TEMPORARY"
-    RETURN = "RETURN"
     GIFT = "GIFT"
+    SALE = "SALE"
+    SAMPLE = "SAMPLE"
     REPAIR = "REPAIR"
+    RETURN = "RETURN"
 
 class ShipmentPurpose(str, Enum):
     GIFT = "GIFT"
 
 class TaxIdTypes(str, Enum):
-    EORI = "EORI"
-    VAT = "VAT"
-    SSN = "SSN"
+    VOEC = "VOEC"
     EIN = "EIN"
-    GST = "GST"
+    VAT = "VAT"
+    EORI = "EORI"
+    IOSS = "IOSS"
     OTHER = "OTHER"
 
 class TermsOfSale(str, Enum):
@@ -77,6 +77,11 @@ class ShipmentDeliveryStatus(str, Enum):
     CANCELLED = "cancelled"
     RETURNED = "returned"
 
+class OrderSource(str, Enum):
+    API = "api"
+    DASHBOARD = "dashboard"
+    INTEGRATION = "integration"
+
 class TrackingEventStatus(str, Enum):
     IN_TRANSIT = "in_transit"
     DELIVERED = "delivered"
@@ -84,4 +89,10 @@ class TrackingEventStatus(str, Enum):
     CANCELLED = "cancelled"
     RETURNED = "returned"
     REDIRECTED = "redirected"
+    NOTIFICATION = "notification"
     UNKNOWN = "unknown"
+
+class DutiesPayor(str, Enum):
+    RECIPIENT = "RECIPIENT"
+    SENDER = "SENDER"
+    THIRD_PARTY = "THIRD_PARTY"

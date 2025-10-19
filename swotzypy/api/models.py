@@ -3,23 +3,41 @@ from typing import Optional, List, Dict, Literal
 from pydantic import BaseModel, EmailStr
 from .enums import (
     DeliveryType, OrderStatus, CarrierEnum, 
-    InvoiceType, ExportReason, ShipmentDeliveryStatus,
-    DocumentType, RecipientEntityType, TrackingEventStatus,
-    ShipmentPurpose, TaxIdTypes, TermsOfSale
+    InvoiceType, ExportReason, ShipmentDeliveryStatus, 
+    RecipientEntityType, TrackingEventStatus,
+    ShipmentPurpose, TaxIdTypes, TermsOfSale,
+    OrderSource, DutiesPayor
 )
 
 class Address(BaseModel):
     full_name: str
+    company: Optional[str] = None
+    contact_name: Optional[str] = None
     phone: str
-    email: EmailStr
+    email: Optional[EmailStr] = None
     address1: str
     address2: Optional[str] = None
     zip: str
     city: str
+    state: Optional[str] = None
     country: str
-    company: Optional[str] = None
-    entity_type: Optional[RecipientEntityType] = None
-    tax_number: Optional[str] = None
+
+
+class TaxIds(BaseModel):
+    type: TaxIdTypes
+    value: str
+    country: str
+
+class InvoiceSchema(BaseModel):
+    item_discount: Optional[float] = None
+    freight_costs: Optional[float] = None
+    insurance_costs: Optional[float] = None
+    other_costs: Optional[float] = None
+    packing_costs: Optional[float] = None
+    handling_costs: Optional[float] = None
+    invoice_number: Optional[str] = None
+    invoice_date: Optional[str] = None
+
 
 class DeliveryConfigClassic(BaseModel):
     type: Literal[DeliveryType.CLASSIC] = DeliveryType.CLASSIC
@@ -32,38 +50,43 @@ class DeliveryConfigPallet(BaseModel):
     type: Literal[DeliveryType.PALLET] = DeliveryType.PALLET
     pallet_type: str
 
-class PackageBase(BaseModel):
+class PackageComplete(BaseModel):
     length: float
     width: float
     height: float
     weight: float
 
 class ShipmentItem(BaseModel):
-    description: str
+    title: str
     quantity: int
     value: float
+    sku: Optional[str] = None
+    country_of_origin: str
     weight: float
     hs_code: str
-    country_of_origin: str
 
 class Customs(BaseModel):
-    invoice_type: InvoiceType
-    export_reason: ExportReason
-    shipment_purpose: Optional[ShipmentPurpose] = None
-    terms_of_sale: Optional[TermsOfSale] = None
-    tax_id_type: Optional[TaxIdTypes] = None
-    tax_id: Optional[str] = None
+    declaration_statement: Optional[str] = None
+    other_comments: Optional[str] = None
+    duties_payor: Optional[DutiesPayor] = DutiesPayor.RECIPIENT
+    incoterms: Optional[TermsOfSale] = None
+    third_party_fedex_number: Optional[str] = None
+    export_reason: Optional[ExportReason] = ExportReason.SALE
+    sender_tax_id: Optional[TaxIds] = None
+    recipient_tax_id: Optional[TaxIds] = None
+    importer_tax_id: Optional[TaxIds] = None
+    importer_address: Optional[Address] = None
+    invoice: Optional[InvoiceSchema] = None
 
 class ShipmentBase(BaseModel):
-    package: PackageBase
-    items: Optional[List[ShipmentItem]] = None
-    customs: Optional[Customs] = None
+    package: PackageComplete
+    customs_items: Optional[List[ShipmentItem]] = None
 
 class ShipmentOut(BaseModel):
     id: int
-    tracking_number: str
-    tracking_url: str
-    carrier_tracking_url: str
+    tracking_number: Optional[str] = None
+    tracking_url: Optional[str] = None
+    carrier_tracking_url: Optional[str] = None
     delivery_status: Optional[ShipmentDeliveryStatus] = None
 
 class DeliveryEstimate(BaseModel):
@@ -72,36 +95,37 @@ class DeliveryEstimate(BaseModel):
 
 class ParcelshopLocation(BaseModel):
     id: str
-    name: str
-    address: str
+    display_name: str
+    street: str
     city: str
     zip: str
     country: str
     latitude: float
     longitude: float
-    working_hours: Dict[str, List[str]]
 
 class OrderBase(BaseModel):
-    carrier: CarrierEnum
-    service: str
+    carrier: Optional[CarrierEnum] = None
+    service: Optional[str] = None
     reference_id: Optional[str] = None
     delivery_config: DeliveryConfigClassic | DeliveryConfigParcelshop | DeliveryConfigPallet
     address_sender: Address
     address_recipient: Address
     shipments: List[ShipmentBase]
 
-class OrderCreate(OrderBase):
-    pass
-
 class Order(OrderBase):
     id: int
+    source: OrderSource
     status: OrderStatus
-    subtotal: float
+    subtotal: Optional[float] = None
     currency: str
     date_created: datetime
     delivery_estimate: Optional[str] = None
     shipments: List[ShipmentOut]
     is_active: bool
+
+class OrderCreate(OrderBase):
+    pass
+
 
 class TrackingEvent(BaseModel):
     status: TrackingEventStatus
@@ -113,7 +137,39 @@ class TrackingEvent(BaseModel):
     zip: Optional[str] = None
 
 class TrackingInfo(BaseModel):
+    tracking_number: str
+    carrier: Optional[CarrierEnum] = None
     events: List[TrackingEvent]
-    latest_status: TrackingEventStatus
-    latest_timestamp: datetime
-    is_delivered: bool
+    delivery_status: Optional[ShipmentDeliveryStatus] = None
+    date_delivered: Optional[datetime] = None
+
+class FedexImporterOfRecord(BaseModel):
+    tax_id: str
+    company: str
+    phone: str
+    address: str
+    city: str
+    country: str
+    zip: str
+
+class Extras(BaseModel):
+    fragile: Optional[bool] = False
+    return_of_document: Optional[bool] = False
+    id_check: Optional[bool] = False
+    duties_payor: Optional[DutiesPayor] = None
+    fedex_terms_of_sale: Optional[TermsOfSale] = None
+    fedex_shipment_purpose: Optional[ShipmentPurpose] = None
+    fedex_invoice_type: Optional[InvoiceType] = None
+    fedex_declaration_statement: Optional[str] = None
+    fedex_importer_of_record: Optional[FedexImporterOfRecord] = None
+
+class RateRequest(BaseModel):
+    sender_address: Address
+    currency: Optional[str] = "EUR"
+    shipments: List[ShipmentBase]
+    delivery_config: Optional[DeliveryConfigClassic | DeliveryConfigParcelshop | DeliveryConfigPallet] = None
+    carrier: Optional[CarrierEnum] = None
+    recipient_entity_type: Optional[RecipientEntityType] = None
+    recipient_address: Optional[Address] = None
+    extras: Optional[Extras] = None
+    customs: Optional[Customs] = None

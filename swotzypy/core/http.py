@@ -89,7 +89,6 @@ class HTTPClient:
     def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None,
             headers: Optional[Dict[str, str]] = None) -> Any:
         url, headers = self._prepare_request(endpoint, headers)
-        print(url, params, headers)
         response = self._sync_client.get(url, params=params, headers=headers)
         return self._handle_response(response)
     

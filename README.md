@@ -17,8 +17,6 @@ Modern Python client for Swotzy API with support for both synchronous and asynch
 pip install swotzypy
 ```
 
-## Использование
-
 ### Basic Example
 
 ```python
@@ -95,31 +93,6 @@ order = OrderCreate(
 )
 ```
 
-### Delivery Cost Calculation
-
-```python
-# Calculate delivery cost
-rates = client.rates.calculate({
-    "shipments": [{
-        "package": {
-            "length": 20,
-            "width": 15,
-            "height": 10,
-            "weight": 1.5
-        }
-    }],
-    "address_sender": {
-        "country": "LV",
-        "city": "Riga",
-        "zip": "LV-1001"
-    },
-    "address_recipient": {
-        "country": "LV",
-        "city": "Riga",
-        "zip": "LV-1002"
-    }
-})
-```
 
 ### Configuration Using Builder
 
@@ -134,33 +107,17 @@ config = (ClientConfig.builder()
           .build())
 
 client = Client.from_config(config, 
-                          public_key="your-public-key",
-                          private_key="your-private-key")
+                          public_key="<your-public-key>",
+                          private_key="<your-private-key>")
 ```
 
 ## Architecture
 
-The project follows clean architecture principles and uses the following design patterns:
+The project follows architecture principles and uses the following design patterns:
 
 - **Facade**: The main `Client` class provides a simple interface for all API capabilities
 - **Strategy**: The authentication module supports various authentication strategies (Basic Auth)
 - **Builder**: Client configuration is implemented through the Builder pattern
-
-### Project Structure
-
-```
-swotzypy/
-├── core/
-│   ├── client.py     # Основной класс-фасад
-│   ├── http.py       # Низкоуровневый HTTP-клиент
-│   └── config.py     # Конфигурация с паттерном Builder
-├── auth/
-│   └── auth.py       # Стратегии аутентификации
-├── api/
-│   ├── models.py     # Pydantic модели
-│   ├── enums.py      # Перечисления для API
-│   └── endpoints.py  # Высокоуровневые API endpoints
-```
 
 ## Modules
 

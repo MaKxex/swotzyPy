@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict
 from ..core.http import HTTPClient
 from .models import (
-    OrderCreate, Order, ParcelshopLocation,
+    OrderCreate, Order, ParcelshopLocation, RateRequest,
     TrackingInfo, DeliveryEstimate
 )
 
@@ -114,15 +114,17 @@ class RatesAPI:
     
     def __init__(self, http_client: HTTPClient):
         self._http = http_client
-    
-    def calculate(self, shipment_data: Dict) -> List[Dict]:
+
+    def calculate(self, shipment_data: RateRequest) -> List[Dict]:
         """Calculate shipping rates"""
-        response = self._http.post("/public/rates", data=shipment_data)
+        data = shipment_data.model_dump(mode="json")
+        response = self._http.post("/public/rates", data=data)
         return response["rates"]
-    
-    async def acalculate(self, shipment_data: Dict) -> List[Dict]:
+
+    async def acalculate(self, shipment_data: RateRequest) -> List[Dict]:
         """Calculate shipping rates (async)"""
-        response = await self._http.apost("/public/rates", data=shipment_data)
+        data = shipment_data.model_dump(mode="json")
+        response = await self._http.apost("/public/rates", data=data)
         return response["rates"]
 
 class TrackingAPI:
