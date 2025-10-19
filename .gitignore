@@ -2,3 +2,5 @@
 gi.py
 __pycache__/
 openapi.json
+swotzypy.egg-info/
+dist/
